@@ -131,7 +131,7 @@ const playMenu = new MenuTemplate(ctx => {
 })
 playMenu.interact('Вопросы', 'quest', {
     do: async ctx => {
-        if (ctx.coinsAmount >= 150) {
+        if (ctx.session.coinsAmount >= 150) {
             await ctx.reply(`Чтобы отвечать на вопросы, пишите числа от 1 до 4. \nИспользуйте /home для выхода в главное меню`)
             ctx.scene.enter('quest')
         } else {
@@ -142,7 +142,7 @@ playMenu.interact('Вопросы', 'quest', {
 })
 playMenu.interact('Правда/Ложь', 'boolQuest', {
     do: async ctx => {
-        if (ctx.coinsAmount >= 10) {
+        if (ctx.session.coinsAmount >= 10) {
             await ctx.reply(`Чтобы отвечать на вопросы, отвечайте Да или Нет. \nИспользуйте /home для выхода в главное меню`)
             ctx.scene.enter('boolQuest')
         } else {
@@ -157,7 +157,7 @@ playMenu.interact('Испытать фортуну', 'luck', {
         else return false;
     },
     do: async ctx => {
-        if (ctx.coinsAmount >= 200*ctx.session.level) {
+        if (ctx.session.coinsAmount >= 200*ctx.session.level) {
             luckButtonToggle = true
             ctx.scene.enter('luck')
         } else {
@@ -189,6 +189,7 @@ bot.use(async (ctx, next) => {
         let add = (new Date() - new Date(ctx.session.lastVision))/1000
         add += (investFields[ctx.session.counterLevel+1].rate+1)*add*Math.pow(5,(ctx.session.base))
         if(!isNaN(add)) ctx.session.coinsAmount += add
+        ctx.session.wins += add
         ctx.session.lastVision = new Date();
     }
     //Lower than 0

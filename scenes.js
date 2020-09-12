@@ -51,7 +51,7 @@ class SceneGenerator {
             const currAnswer = Number(ctx.message.text)
             if (currAnswer && currAnswer > 0  && currAnswer < 5) {
                 if (currAnswer === ctx.session.answer) {
-                    ctx.session.wins += 1
+                    ctx.session.wins += 500
                     ctx.session.coinsAmount += 500
                     await ctx.reply(`Правильный ответ, вы получаете +500 токенов.`)
                 } else if(currAnswer !== ctx.session.answer){
@@ -108,7 +108,7 @@ class SceneGenerator {
             const currAnswer = ctx.message.text.toLowerCase()
             if (currAnswer && (currAnswer == "да" || currAnswer == "нет" )) {
                 if (currAnswer === ctx.session.answer) {
-                    ctx.session.wins += 1
+                    ctx.session.wins += 50
                     ctx.session.coinsAmount += 50
                     await ctx.reply(`Правильный ответ, вы получаете +50 токенов.`)
                 } else if(currAnswer !== ctx.session.answer){
