@@ -3,6 +3,7 @@
 ### A telegram bot based capital game.
 
 Requirements: NodeJS 12
+
 Libraries: 
   * telegraf, 
   * telegraf-inline-menu, 
