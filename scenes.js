@@ -145,10 +145,10 @@ class SceneGenerator {
             if (res) {
                 win = 10000 * ctx.session.level;
                 ctx.session.coinsAmount += win;
-                await ctx.reply(`Сегодня удача на вашей стороне!\nВы выйграли СУПЕРПРИЗ: ${bonus} токенов`)
+                await ctx.reply(`Сегодня удача на вашей стороне!\nВы выйграли СУПЕРПРИЗ: ${win} токенов`)
             } else {
                 ctx.session.coinsAmount += win * ctx.session.level;
-                await ctx.reply(`Вы выйграли: ${bonus} токенов`)
+                await ctx.reply(`Вы выйграли: ${win} токенов`)
             }
             
             ctx.session.lastLuckRun = new Date()
