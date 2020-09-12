@@ -1,0 +1,18 @@
+{
+  "name": "capital-bot",
+  "version": "0.0.1",
+  "description": "A telegram bot for TinkoffxSkoltech hackaton",
+  "homepage": "https://github.com/CityAplons/hack-lab-1-telegram-bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "WhyNot team",
+  "license": "MIT",
+  "dependencies": {
+    "telegraf": "^3.38.0",
+    "telegraf-inline-menu": "^5.1.0",
+    "telegraf-session-local": "^2.0.0"
+  }
+}
