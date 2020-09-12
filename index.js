@@ -131,15 +131,23 @@ const playMenu = new MenuTemplate(ctx => {
 })
 playMenu.interact('Вопросы', 'quest', {
     do: async ctx => {
-        await ctx.reply(`Чтобы отвечать на вопросы, пишите числа от 1 до 4. \nИспользуйте /home для выхода в главное меню`)
-        ctx.scene.enter('quest')
+        if (ctx.coinsAmount >= 150) {
+            await ctx.reply(`Чтобы отвечать на вопросы, пишите числа от 1 до 4. \nИспользуйте /home для выхода в главное меню`)
+            ctx.scene.enter('quest')
+        } else {
+            await ctx.reply("Не хвататет 🟡")
+        }
         return true;
     }
 })
 playMenu.interact('Правда/Ложь', 'boolQuest', {
     do: async ctx => {
-        await ctx.reply(`Чтобы отвечать на вопросы, отвечайте Да или Нет. \nИспользуйте /home для выхода в главное меню`)
-        ctx.scene.enter('boolQuest')
+        if (ctx.coinsAmount >= 10) {
+            await ctx.reply(`Чтобы отвечать на вопросы, отвечайте Да или Нет. \nИспользуйте /home для выхода в главное меню`)
+            ctx.scene.enter('boolQuest')
+        } else {
+            await ctx.reply("Не хвататет 🟡")
+        }
         return true;
     }
 })
@@ -149,8 +157,13 @@ playMenu.interact('Испытать фортуну', 'luck', {
         else return false;
     },
     do: async ctx => {
-        luckButtonToggle = true
-        ctx.scene.enter('luck')
+        if (ctx.coinsAmount >= 200*ctx.session.level) {
+            luckButtonToggle = true
+            ctx.scene.enter('luck')
+        } else {
+            await ctx.reply("Не хвататет 🟡")
+        }
+        
         return true;
     }
 })
