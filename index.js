@@ -57,16 +57,12 @@ let statsMenuToggle = false
 const fields = JSON.parse(readFileSync('_data_db.json'));
 const levelFields = fields.levels
 const baselFields = fields.bases
+const investFields = fields.invests
 /*
  * Statistics submenu
  */
 const statsMenu = new MenuTemplate((ctx) => {
-    if (ctx.session.lastVision) {
-        let add = Math.floor(parseFloat(new Date() - new Date(ctx.session.lastVision))/1000)*ctx.session.multiplier*Math.pow(5,(ctx.session.leve-1))
-        if(!isNaN(add)) ctx.session.coinsAmount += add
-        ctx.session.lastVision = new Date();
-    }
-    return `Токены: ${ctx.session.coinsAmount}🟡\nМесто работы: ${baselFields[ctx.session.base].name}\nБонусный множитель: ${baselFields[ctx.session.base].rate}\nТвой уровень: ${ctx.session.level} - ${levelFields[ctx.session.level-1].role}
+    return `Токены: ${ctx.session.coinsAmount.toFixed(3)}🟡\nМесто работы: ${baselFields[ctx.session.base].name}\nБонусный множитель: ${ctx.session.base}\nТвой уровень: ${ctx.session.level} -> ${levelFields[ctx.session.level].role}
 ${levelFields[ctx.session.level].description}`;
 })
 statsMenu.manualRow(createBackMainMenuButtons("Назад", "В меню"))
@@ -75,7 +71,7 @@ menuTemplate.submenu('Прогресс', 'amount', statsMenu, {
 })
 
 /*
- * Upgrade submenu
+ * Upgrade base submenu
  */
 const upgradeMenu = new MenuTemplate((ctx) => {
     return `Обновить рабочее место - ${baselFields[ctx.session.base+1].name} ${baselFields[ctx.session.base+1].price}🟡`;
@@ -85,8 +81,7 @@ upgradeMenu.interact('Купить', 'buyUpgradeBase', {
         if(ctx.session.coinsAmount >= baselFields[ctx.session.base+1].price) {
             ctx.session.coinsAmount -= baselFields[ctx.session.base+1].price
             ctx.session.base += 1
-            ctx.session.multiplier = baselFields[ctx.session.base].rate;
-            ctx.reply(`Вы перехали в ${baselFields[ctx.session.base].name}, теперь заработок в х${baselFields[ctx.session.base].rate} раз выше!`)
+            ctx.reply(`Вы перехали в ${baselFields[ctx.session.base].name}!`)
         } else {
             ctx.reply(`Не хватает токенов! 😡`)
         }
@@ -100,23 +95,50 @@ statsMenu.submenu('Обновить рабочее место', 'upgradeBase', u
 })
 
 /*
+ * Upgrade timer submenu
+ */
+const upgradeTimerMenu = new MenuTemplate((ctx) => {
+    let startupsString = ""
+    for (let index = ctx.session.counterLevel; index > 0; index--) {
+        startupsString += `${investFields[index].name}; `;
+    }
+    return `Увеличить прибыль, проинвестировав в "${investFields[ctx.session.counterLevel+1].name}" ${investFields[ctx.session.counterLevel+1].price*Math.pow(5,ctx.session.base)}🟡\nПрибыль увеличится на ${investFields[ctx.session.counterLevel+1].rate*Math.pow(5,ctx.session.base)} 🟡 в сек.
+Текущие инвестиции: ${startupsString} Прибыль ${(investFields[ctx.session.counterLevel+1].rate+1)*Math.pow(5,(ctx.session.base))} 🟡 в сек.`;
+})
+upgradeTimerMenu.interact('Инвестировать', 'buyUpgradeTimer', {
+    do: async ctx => {
+        if(ctx.session.coinsAmount >= investFields[ctx.session.counterLevel+1].price*Math.pow(5,ctx.session.base)) {
+            ctx.session.coinsAmount -= investFields[ctx.session.counterLevel+1].price*Math.pow(5,ctx.session.base)
+            ctx.session.counterLevel += 1
+            ctx.reply(`Вы инвестировали в ${investFields[ctx.session.counterLevel].name}, теперь заработок на ${investFields[ctx.session.counterLevel].rate*Math.pow(5,ctx.session.base)}🟡 в сек. раз выше!`)
+        } else {
+            ctx.reply(`Не хватает токенов! 😡`)
+        }
+    
+        return true;
+    }
+})
+upgradeTimerMenu.manualRow(createBackMainMenuButtons("Назад", "В меню"))
+statsMenu.submenu('Инвестировать', 'upgradeTimer', upgradeTimerMenu, {
+	hide: () => statsMenuToggle
+})
+
+/*
  * Play submenu
  */
 const playMenu = new MenuTemplate(ctx => {
-    if ((new Date() - new Date(ctx.session.lastLuckRun)) >= 120000) luckButtonToggle = false
-    else luckButtonToggle = true
-    return `Ваш баланс: ${ctx.session.coinsAmount}🟡\n🕹🎮Выберите игровой режим и заплатите за участие из своего кармана💸!\n❓❓Вопрос: 150🟡\n🟢🔴Правда или Ложь: 10🟡\n🎯🎲Испытать фортуну: доступно 1 раз в день🕰`
+    return `Ваш баланс: ${ctx.session.coinsAmount.toFixed(3)}🟡\n🕹🎮Выберите игровой режим и заплатите за участие из своего кармана💸!\n❓❓Вопрос: 150🟡\n🟢🔴Правда или Ложь: 10🟡\n🎯🎲Испытать фортуну: доступно 2 раз в день🕰 Стоимость ${200*ctx.session.level}🟡`
 })
 playMenu.interact('Вопросы', 'quest', {
     do: async ctx => {
-        ctx.reply(`Чтобы отвечать на вопросы, пишите числа от 1 до 4. \nИспользуйте /home для выхода в главное меню`)
+        await ctx.reply(`Чтобы отвечать на вопросы, пишите числа от 1 до 4. \nИспользуйте /home для выхода в главное меню`)
         ctx.scene.enter('quest')
         return true;
     }
 })
 playMenu.interact('Правда/Ложь', 'boolQuest', {
     do: async ctx => {
-        ctx.reply(`Чтобы отвечать на вопросы, отвечайте Да или Нет. \nИспользуйте /home для выхода в главное меню`)
+        await ctx.reply(`Чтобы отвечать на вопросы, отвечайте Да или Нет. \nИспользуйте /home для выхода в главное меню`)
         ctx.scene.enter('boolQuest')
         return true;
     }
@@ -141,13 +163,28 @@ menuTemplate.submenu('Играть', 'play', playMenu, {
  * Level progression
  */
 bot.use(async (ctx, next) => {
+    //Level
     if (ctx.session.level) {
-        if(ctx.session.wins >= levelFields[ctx.session.level-1].wins) {
+        if(ctx.session.wins >= levelFields[ctx.session.level].wins && ctx.session.base >= 1) {
             ctx.session.level += 1
-            ctx.reply(`🎉 Ваш уровень вырос! Теперь вы ${levelFields[ctx.session.level-1].role} 🎉`)
+            ctx.reply(`🎉 Ваш уровень вырос! Теперь вы ${levelFields[ctx.session.level].role} 🎉`)
             ctx.session.wins = 0
         }
     }
+    //Timer
+    if (ctx.session.lastVision) {
+        let add = (new Date() - new Date(ctx.session.lastVision))/1000
+        add += (investFields[ctx.session.counterLevel+1].rate+1)*add*Math.pow(5,(ctx.session.base))
+        if(!isNaN(add)) ctx.session.coinsAmount += add
+        ctx.session.lastVision = new Date();
+    }
+    //Lower than 0
+    if (ctx.session.coinsAmount < 0) {
+        ctx.session.coinsAmount = 0
+    }
+    //Luck timer
+    if ((new Date() - new Date(ctx.session.lastLuckRun)) >= 24*60*60*1000) luckButtonToggle = false
+    else luckButtonToggle = true
     return next();
 })
 
@@ -156,11 +193,11 @@ bot.use(async (ctx, next) => {
  */
 const menuMiddleware = new MenuMiddleware('/', menuTemplate)
 bot.command('start', ctx => {
-    ctx.session.coinsAmount = ctx.session.coinsAmount || 200;
+    ctx.session.coinsAmount = ctx.session.coinsAmount || 10;
     ctx.session.wins = ctx.session.wins || 0;
     ctx.session.base = ctx.session.base || 0;
     ctx.session.level = ctx.session.level || 1;
-    ctx.session.multiplier = baselFields[ctx.session.base].rate;
+    ctx.session.counterLevel = ctx.session.counterLevel || 0;
     ctx.session.lastVision = ctx.session.lastVision || new Date();
     ctx.session.lastLuckRun = ctx.session.lastLuckRun || new Date();
     ctx.session.restart_quest = true
@@ -169,7 +206,7 @@ bot.command('start', ctx => {
 })
 bot.use(menuMiddleware)
 bot.command('instructions',(ctx) => ctx.reply(`В этой игре тебе необходимо правильно отвечать на вопросы, зарабатывать деньги и развивать свой бизнес!
-Для нового уровня нужно правильно ответить ${levelFields[ctx.session.level-1].wins - ctx.session.wins} раз`))
+Для нового уровня нужно заработать ${levelFields[ctx.session.level].wins - ctx.session.wins}🟡`))
 bot.on('sticker', (ctx) => ctx.reply('👍'))
 bot.hears('привет', (ctx) => ctx.reply('Ну здарова, меченный'))
 bot.launch()

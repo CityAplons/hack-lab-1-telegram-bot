@@ -52,8 +52,8 @@ class SceneGenerator {
             if (currAnswer && currAnswer > 0  && currAnswer < 5) {
                 if (currAnswer === ctx.session.answer) {
                     ctx.session.wins += 1
-                    ctx.session.coinsAmount += 500*ctx.session.multiplier
-                    await ctx.reply(`Правильный ответ, вы получаете +${500*ctx.session.multiplier} токенов.`)
+                    ctx.session.coinsAmount += 500
+                    await ctx.reply(`Правильный ответ, вы получаете +500 токенов.`)
                 } else if(currAnswer !== ctx.session.answer){
                     await ctx.reply(`Промах 🥺`)
                 }
@@ -109,8 +109,8 @@ class SceneGenerator {
             if (currAnswer && (currAnswer == "да" || currAnswer == "нет" )) {
                 if (currAnswer === ctx.session.answer) {
                     ctx.session.wins += 1
-                    ctx.session.coinsAmount += 50*ctx.session.multiplier
-                    await ctx.reply(`Правильный ответ, вы получаете +${50*ctx.session.multiplier} токенов.`)
+                    ctx.session.coinsAmount += 50
+                    await ctx.reply(`Правильный ответ, вы получаете +50 токенов.`)
                 } else if(currAnswer !== ctx.session.answer){
                     await ctx.reply(`Промах 🥺`)
                 }
@@ -139,14 +139,18 @@ class SceneGenerator {
     genluckScene () {
         const luck = new Scene('luck')
         luck.enter(async (ctx) => {
-            const res = Math.random() >= 0.5;
+            ctx.session.coinsAmount -= 200*ctx.session.level
+            let win = fetchQuestion([50,100,200,300,500])*ctx.session.level
+            const res = Math.random() >= 0.1;
             if (res) {
-                let bonus = 200 * ctx.session.level;
-                ctx.session.coinsAmount += bonus;
-                await ctx.reply(`Сегодня удача на вашей стороне!\nВы нашли в кармане зимней куртки ${bonus} токенов`)
+                win = 10000 * ctx.session.level;
+                ctx.session.coinsAmount += win;
+                await ctx.reply(`Сегодня удача на вашей стороне!\nВы выйграли СУПЕРПРИЗ: ${bonus} токенов`)
             } else {
-                await ctx.reply('Вам не повезло, попробуйте в другой раз')
+                ctx.session.coinsAmount += win * ctx.session.level;
+                await ctx.reply(`Вы выйграли: ${bonus} токенов`)
             }
+            
             ctx.session.lastLuckRun = new Date()
             ctx.scene.leave()
         })
